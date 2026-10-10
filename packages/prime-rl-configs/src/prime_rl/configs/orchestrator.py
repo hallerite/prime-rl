@@ -471,6 +471,18 @@ class ConcurrencyConfig(BaseConfig):
         return self
 
 
+class ControlConfig(BaseConfig):
+    host: str = "0.0.0.0"
+    """Address the control API binds to."""
+
+    port: int = Field(8040, ge=1, le=65535)
+    """Port the control API listens on."""
+
+    commit_timeout: float = Field(3600.0, gt=0)
+    """Seconds a paused orchestrator keeps serving while it waits for the trainer to commit
+    the pause checkpoint."""
+
+
 # Top-k injected on truncated policy sampling that has none, and the hard upper
 # bound for explicit top-k. vLLM's native sampling-mask capture requires a
 # per-request top_k > 0 to bound mask sizes, and the trainer pads each micro
@@ -558,6 +570,10 @@ class OrchestratorConfig(BaseConfig):
 
     heartbeat: HeartbeatConfig | None = None
     """BetterStack heartbeat configuration for monitoring training progress."""
+
+    control: ControlConfig | None = None
+    """Serve the run control API (checkpoint or pause the run at the next step). If None, the run
+    takes no control requests."""
 
     @model_validator(mode="after")
     def auto_setup_tokenizer(self):
